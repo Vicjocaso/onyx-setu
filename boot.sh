@@ -25,7 +25,7 @@ fi
 
 echo "Cloning Onyx..."
 rm -rf ~/.local/share/onyx
-git clone https://github.com/Vicjocaso/onyx-setu.git ~/.local/share/onyx >/dev/null
+git clone -b main https://github.com/Vicjocaso/onyx-setu.git ~/.local/share/onyx >/dev/null
 if [[ -n $ONYX_REF && $ONYX_REF != "master" ]]; then
 	cd ~/.local/share/onyx
 	git fetch origin "$ONYX_REF" && git checkout "$ONYX_REF"
