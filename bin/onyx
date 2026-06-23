@@ -1,9 +1,24 @@
 #!/bin/bash
 
+# Resize the terminal window to give Onyx more room, then restore on exit.
+_ORIG_COLS=$(tput cols 2>/dev/null || echo 80)
+_ORIG_ROWS=$(tput lines 2>/dev/null || echo 24)
+printf '\e[8;%d;%dt' 52 200
+
+# Ensure the Dracula palette is active for this session.
+_PROFILE=$(dconf read /org/gnome/Ptyxis/default-profile-uuid 2>/dev/null | tr -d "'")
+if [ -n "$_PROFILE" ]; then
+	dconf write /org/gnome/Ptyxis/Profiles/${_PROFILE}/palette "'dracula'" 2>/dev/null || true
+fi
+
+# Restore window size when Onyx exits.
+trap 'printf "\e[8;${_ORIG_ROWS};${_ORIG_COLS}t"' EXIT
+
 # Prefer the Bubble Tea control panel when the binary is present.
 TUI="$ONYX_PATH/bin/onyx-tui"
 if [ -x "$TUI" ]; then
-	exec "$TUI" "$@"
+	"$TUI" "$@"
+	exit $?
 fi
 
 # Fallback: legacy gum-based bash menu (used if the binary is missing).
