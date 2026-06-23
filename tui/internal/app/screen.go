@@ -46,6 +46,14 @@ type (
 		title string
 		cmd   string
 	}
+	// silentRunMsg runs a backend command in the background without switching
+	// mode. A status line is shown at the bottom when it finishes.
+	silentRunMsg struct{ job runner.Job }
+	// silentDoneMsg is delivered when a silentRunMsg job finishes.
+	silentDoneMsg struct {
+		title string
+		err   error
+	}
 	// quitMsg exits the program.
 	quitMsg struct{}
 )
@@ -62,6 +70,9 @@ func pop() tea.Cmd          { return func() tea.Msg { return popScreen{} } }
 func quit() tea.Cmd         { return func() tea.Msg { return quitMsg{} } }
 func run(j runner.Job) tea.Cmd {
 	return func() tea.Msg { return runJobMsg{job: j} }
+}
+func runSilent(j runner.Job) tea.Cmd {
+	return func() tea.Msg { return silentRunMsg{job: j} }
 }
 func execute(title, cmd string) tea.Cmd {
 	return func() tea.Msg { return execMsg{title: title, cmd: cmd} }

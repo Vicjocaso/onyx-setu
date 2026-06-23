@@ -101,8 +101,8 @@ func newThemeMenu() Screen {
 		if item.Label == "<< Back" {
 			return pop()
 		}
-		return run(runner.Job{
-			Title: "Applying " + item.Label,
+		return runSilent(runner.Job{
+			Title: item.Label,
 			Cmd:   themeApplyCmd(slug(item.Label)),
 		})
 	})

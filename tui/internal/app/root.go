@@ -103,6 +103,18 @@ func (r Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case quitMsg:
 		return r, tea.Quit
 
+	case silentRunMsg:
+		r.status = ui.Hint.Render("Applying " + msg.job.Title + "…")
+		return r, runSilentJob(r.cfg, msg.job)
+
+	case silentDoneMsg:
+		if msg.err != nil {
+			r.status = ui.ItemDesc.Render("✗ " + msg.title + " failed: " + msg.err.Error())
+		} else {
+			r.status = ui.VersionTag.Render("✓ " + msg.title + " applied")
+		}
+		return r, nil
+
 	case runJobMsg:
 		if _, ok := r.top().(panedScreen); ok && r.width >= 64 {
 			r.mode = modeRunInline
@@ -339,4 +351,15 @@ func maxInt(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// runSilentJob executes a job in a background goroutine and delivers
+// silentDoneMsg when it finishes. The UI stays in modeMenu throughout.
+func runSilentJob(cfg config.Config, job runner.Job) tea.Cmd {
+	return func() tea.Msg {
+		cmd := exec.Command("bash", "-c", job.Cmd)
+		cmd.Env = append(os.Environ(), "ONYX_PATH="+cfg.OnyxPath)
+		err := cmd.Run()
+		return silentDoneMsg{title: job.Title, err: err}
+	}
 }
