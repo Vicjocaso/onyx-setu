@@ -1,0 +1,5 @@
+include "%H/.local/share/onyx/defaults/xcompose"
+
+# Identification
+<Multi_key> <space> <n> : "$ONYX_USER_NAME"
+<Multi_key> <space> <e> : "$ONYX_USER_EMAIL"

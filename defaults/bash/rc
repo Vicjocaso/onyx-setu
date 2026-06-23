@@ -1,0 +1,5 @@
+source ~/.local/share/onyx/defaults/bash/shell
+source ~/.local/share/onyx/defaults/bash/aliases
+source ~/.local/share/onyx/defaults/bash/functions
+source ~/.local/share/onyx/defaults/bash/prompt
+source ~/.local/share/onyx/defaults/bash/init
