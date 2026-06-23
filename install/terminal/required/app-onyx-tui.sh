@@ -1,27 +1,16 @@
 #!/bin/bash
 
-# Download the prebuilt Onyx control-panel TUI (Bubble Tea). This powers the
-# `onyx` command after install. If the download fails or the arch is
-# unsupported, `bin/onyx` transparently falls back to the legacy bash menu.
-
-ARCH=$(dpkg --print-architecture)
-
-case "$ARCH" in
-amd64 | arm64) ;;
-*)
-	echo "Onyx TUI: unsupported architecture '$ARCH' — the 'onyx' command will use the bash menu."
-	return 0 2>/dev/null || exit 0
-	;;
-esac
+# Build the Onyx control-panel TUI from source using the Go installed by mise.
+# This runs after select-dev-language.sh so Go is already available.
 
 DEST="$HOME/.local/share/onyx/bin/onyx-tui"
-URL="https://github.com/Vicjocaso/onyx-setu/releases/latest/download/onyx-tui_linux_${ARCH}"
+SRC="$HOME/.local/share/onyx/tui"
 
 mkdir -p "$(dirname "$DEST")"
-if wget -qO "$DEST.tmp" "$URL"; then
-	chmod +x "$DEST.tmp"
-	mv "$DEST.tmp" "$DEST"
+
+echo "Building Onyx TUI..."
+if mise exec go -- go build -C "$SRC" -o "$DEST" . 2>/dev/null; then
+	echo "Onyx TUI built successfully."
 else
-	echo "Onyx TUI: download failed — the 'onyx' command will use the bash menu fallback."
-	rm -f "$DEST.tmp"
+	echo "Onyx TUI: build failed — the 'onyx' command will use the bash menu fallback."
 fi
