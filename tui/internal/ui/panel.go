@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -39,11 +41,14 @@ func Panel(title, body string, w, h int, accent lipgloss.Color, focused bool) st
 		bodyH = 0
 	}
 
+	// Render body at the correct width first so text wraps, then hard-clip to
+	// exactly bodyH lines so the panel never grows beyond h.
+	wrapped := lipgloss.NewStyle().Width(contentW).Render(body)
+	clipped := clipLines(wrapped, bodyH)
 	bodyBox := lipgloss.NewStyle().
 		Width(contentW).
 		Height(bodyH).
-		MaxHeight(bodyH).
-		Render(body)
+		Render(clipped)
 
 	inner := bodyBox
 	if header != "" {
@@ -61,6 +66,19 @@ func Panel(title, body string, w, h int, accent lipgloss.Color, focused bool) st
 		Width(contentW).
 		Height(innerH).
 		Render(inner)
+}
+
+// clipLines returns the first n lines of s joined back with newlines.
+// This hard-clips rendered content so panels never exceed their target height.
+func clipLines(s string, n int) string {
+	if n <= 0 {
+		return ""
+	}
+	lines := strings.Split(s, "\n")
+	if len(lines) <= n {
+		return s
+	}
+	return strings.Join(lines[:n], "\n")
 }
 
 // Truncate shortens a plain (non-styled) string to max display columns, adding
