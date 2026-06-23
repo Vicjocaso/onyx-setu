@@ -61,15 +61,12 @@ func TestNavigateIntoThemeAndApplyDryRun(t *testing.T) {
 		t.Fatalf("theme menu not shown:\n%s", view)
 	}
 
-	// Select first theme -> dry-run runner should show the command it would run.
+	// Select first theme -> themes apply silently (runSilent), so the mode
+	// stays in modeMenu and a status line appears at the bottom.
 	m = drive(t, m, tea.KeyMsg{Type: tea.KeyEnter})
 	root := m.(Root)
-	if root.mode != modeRun {
-		t.Fatalf("expected modeRun after applying theme, got %v", root.mode)
-	}
-	view := m.View()
-	if !strings.Contains(view, "dry-run") || !strings.Contains(view, "themes/tokyo-night/gnome.sh") {
-		t.Fatalf("dry-run output missing expected command:\n%s", view)
+	if root.mode != modeMenu {
+		t.Fatalf("expected modeMenu after applying theme (silent), got %v", root.mode)
 	}
 }
 
