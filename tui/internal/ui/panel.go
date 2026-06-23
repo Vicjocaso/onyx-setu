@@ -44,7 +44,7 @@ func Panel(title, body string, w, h int, accent lipgloss.Color, focused bool) st
 	// Render body at the correct width first so text wraps, then hard-clip to
 	// exactly bodyH lines so the panel never grows beyond h.
 	wrapped := lipgloss.NewStyle().Width(contentW).Render(body)
-	clipped := clipLines(wrapped, bodyH)
+	clipped := ClipLines(wrapped, bodyH)
 	bodyBox := lipgloss.NewStyle().
 		Width(contentW).
 		Height(bodyH).
@@ -68,9 +68,9 @@ func Panel(title, body string, w, h int, accent lipgloss.Color, focused bool) st
 		Render(inner)
 }
 
-// clipLines returns the first n lines of s joined back with newlines.
+// ClipLines returns the first n lines of s joined back with newlines.
 // This hard-clips rendered content so panels never exceed their target height.
-func clipLines(s string, n int) string {
+func ClipLines(s string, n int) string {
 	if n <= 0 {
 		return ""
 	}

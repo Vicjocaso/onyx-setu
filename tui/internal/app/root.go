@@ -243,7 +243,7 @@ func (r Root) View() string {
 			if navTitle == "" {
 				navTitle = "Onyx"
 			}
-			side := ui.Panel(navTitle, p.listView(), sideW, midH, ui.Violet, true)
+			side := ui.ClipLines(ui.Panel(navTitle, p.listView(), sideW, midH, ui.Violet, true), midH)
 
 			var detBody string
 			if r.mode == modeRunInline {
@@ -252,7 +252,7 @@ func (r Root) View() string {
 				head, body := p.detail()
 				detBody = r.detailPanel(head, body, detailW-4)
 			}
-			det := ui.Panel("Details", detBody, detailW, midH, ui.Purple, r.mode == modeRunInline)
+			det := ui.ClipLines(ui.Panel("Details", detBody, detailW, midH, ui.Purple, r.mode == modeRunInline), midH)
 
 			middle = lipgloss.JoinHorizontal(lipgloss.Top, side, " ", det)
 		} else {
