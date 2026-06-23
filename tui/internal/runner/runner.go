@@ -74,6 +74,12 @@ func (m Model) Done() bool { return m.done }
 // Err returns the job's exit error, if any.
 func (m Model) Err() error { return m.err }
 
+// JobTitle returns the title of the currently running (or last run) job.
+func (m Model) JobTitle() string { return m.job.Title }
+
+// Lines returns the streamed output lines collected so far.
+func (m Model) Lines() []string { return m.lines }
+
 // Start launches the job and returns the commands that drive streaming.
 func (m *Model) Start(job Job) tea.Cmd {
 	m.job = job

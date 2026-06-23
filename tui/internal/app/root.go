@@ -23,8 +23,9 @@ import (
 type mode int
 
 const (
-	modeMenu mode = iota // navigating screens
-	modeRun              // streamed runner is active/showing output
+	modeMenu       mode = iota // navigating screens
+	modeRun                    // streamed runner is active/showing output (full-screen)
+	modeRunInline              // streamed runner is active/showing output in the detail panel
 )
 
 // frameMsg advances the header gradient animation.
@@ -103,7 +104,11 @@ func (r Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return r, tea.Quit
 
 	case runJobMsg:
-		r.mode = modeRun
+		if _, ok := r.top().(panedScreen); ok && r.width >= 64 {
+			r.mode = modeRunInline
+		} else {
+			r.mode = modeRun
+		}
 		r.status = ""
 		cmd := r.runner.Start(msg.job)
 		return r, cmd
@@ -125,7 +130,7 @@ func (r Root) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Unhandled messages (spinner ticks, runner stream/finish, filepicker
 	// dir reads) are routed to whichever component is active.
-	if r.mode == modeRun {
+	if r.mode == modeRun || r.mode == modeRunInline {
 		var cmd tea.Cmd
 		r.runner, cmd = r.runner.Update(msg)
 		return r, cmd
@@ -155,6 +160,16 @@ func (r Root) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		r.runner, cmd = r.runner.Update(msg)
 		return r, cmd
+	}
+
+	if r.mode == modeRunInline {
+		if r.runner.Done() && (key.Matches(msg, ui.Keys.Back) || key.Matches(msg, ui.Keys.Select)) {
+			r.mode = modeMenu
+			return r, nil
+		}
+		// Don't forward keys to the runner viewport while running inline —
+		// the left list should stay navigable.
+		return r, nil
 	}
 
 	s, cmd := r.top().Update(msg)
@@ -218,9 +233,14 @@ func (r Root) View() string {
 			}
 			side := ui.Panel(navTitle, p.listView(), sideW, midH, ui.Violet, true)
 
-			head, body := p.detail()
-			// Panel reserves 2 cols of border + 2 cols of padding.
-			det := ui.Panel("Details", r.detailPanel(head, body, detailW-4), detailW, midH, ui.Purple, false)
+			var detBody string
+			if r.mode == modeRunInline {
+				detBody = r.inlineRunnerPanel(detailW - 4)
+			} else {
+				head, body := p.detail()
+				detBody = r.detailPanel(head, body, detailW-4)
+			}
+			det := ui.Panel("Details", detBody, detailW, midH, ui.Purple, r.mode == modeRunInline)
 
 			middle = lipgloss.JoinHorizontal(lipgloss.Top, side, " ", det)
 		} else {
@@ -252,6 +272,37 @@ func (r Root) breadcrumb() string {
 		parts = append(parts, t)
 	}
 	return strings.Join(parts, " › ")
+}
+
+// inlineRunnerPanel renders the streaming job output for the detail panel.
+func (r Root) inlineRunnerPanel(w int) string {
+	var title string
+	if r.runner.Done() {
+		if r.runner.Err() != nil {
+			title = ui.DetailHeading.Render(r.runner.JobTitle() + " — failed")
+		} else {
+			title = ui.DetailHeading.Render(r.runner.JobTitle() + " — done")
+		}
+	} else {
+		title = ui.DetailHeading.Render(r.runner.JobTitle() + "…")
+	}
+
+	lines := r.runner.Lines()
+	// Show last N lines that fit; keep it simple without a viewport here.
+	output := strings.Join(lines, "\n")
+	outputStyle := lipgloss.NewStyle().Width(w).Foreground(ui.Foreground)
+
+	parts := []string{
+		ui.Breadcrumb.Render(ui.Truncate(r.breadcrumb(), w)),
+		"",
+		title,
+		"",
+		outputStyle.Render(output),
+	}
+	if r.runner.Done() {
+		parts = append(parts, "", ui.Hint.Render("esc / enter • back"))
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, parts...)
 }
 
 // detailPanel builds the right-hand panel body for the focused item.

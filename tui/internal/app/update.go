@@ -3,6 +3,7 @@ package app
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/Vicjocaso/onyx-setu/tui/internal/runner"
 	"github.com/Vicjocaso/onyx-setu/tui/internal/ui"
 )
 
@@ -17,9 +18,9 @@ func newUpdateMenu() Screen {
 	return newMenu("Update applications", items, true, func(idx int, item ui.Item) tea.Cmd {
 		switch item.Label {
 		case "Onyx":
-			return execute("Update Onyx", `source "$ONYX_PATH/bin/onyx-sub/migrate.sh"`)
+			return run(runner.Job{Title: "Update Onyx", Cmd: `source "$ONYX_PATH/bin/onyx-sub/migrate.sh"`})
 		case "LazyDocker":
-			return execute("Update LazyDocker", `source "$ONYX_PATH/install/terminal/app-lazydocker.sh"`)
+			return run(runner.Job{Title: "Update LazyDocker", Cmd: `source "$ONYX_PATH/install/terminal/app-lazydocker.sh"`})
 		}
 		return pop()
 	})
