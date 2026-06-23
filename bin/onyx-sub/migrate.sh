@@ -2,7 +2,7 @@
 
 cd $ONYX_PATH
 last_updated_at=$(git log -1 --format=%cd --date=unix)
-git pull
+git pull --autostash
 
 for file in $ONYX_PATH/migrations/*.sh; do
   filename=$(basename "$file")

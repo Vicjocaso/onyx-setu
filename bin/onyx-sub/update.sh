@@ -23,4 +23,3 @@ else
 fi
 
 clear
-source $ONYX_PATH/bin/onyx
